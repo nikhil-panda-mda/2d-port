@@ -18,14 +18,14 @@ k.loadSprite("spritesheet", "./spritesheet.png", {
 k.loadSprite("map", "./map.png");
 
 k.setBackground(k.Color.fromHex("#311047"));
-
+let player;
 k.scene("main", async () => {
   const mapData = await (await fetch("./map.json")).json();
   const layers = mapData.layers;
 
   const map = k.add([k.sprite("map"), k.pos(0), k.scale(scaleFactor)]);
 
-  const player = k.make([
+  player = k.make([
     k.sprite("spritesheet", { anim: "idle-down" }),
     k.area({
       shape: new k.Rect(k.vec2(0, 3), 10, 10),
@@ -35,7 +35,7 @@ k.scene("main", async () => {
     k.pos(),
     k.scale(scaleFactor),
     {
-      speed: 250,
+      speed: 200,
       direction: "down",
       isInDialogue: false,
     },
@@ -71,6 +71,7 @@ k.scene("main", async () => {
     if (layer.name === "spawnpoints") {
       for (const entity of layer.objects) {
         if (entity.name === "player") {
+          console.log(entity.x, entity.y);
           player.pos = k.vec2(
             (map.pos.x + entity.x) * scaleFactor,
             (map.pos.y + entity.y) * scaleFactor
@@ -92,6 +93,30 @@ k.scene("main", async () => {
     k.camPos(player.worldPos().x, player.worldPos().y - 100);
   });
 
+  k.onMouseDown((mouseBtn) => {
+    if (mouseBtn !== "left" || player.isInDialogue) return;
+
+    const playerPos = player.pos;
+    const mousePos = k.mousePos();
+    // Debugging
+    if (!player) {
+      console.log("Player is undefined!");
+      return;
+    }
+    const worldMousePos = k.toWorld(k.mousePos());
+    player.moveTo(worldMousePos, player.speed);
+
+    const dx = mousePos.x - playerPos.x;
+    const dy = mousePos.y - playerPos.y;
+    const mouseAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+    if(mouseAngle > -135 || mouseAngle > 135){
+      console.log("left");
+    } else if(mouseAngle < -135 || mouseAngle < 135){
+      console.log("right");
+    }
+
+  });
 
 });
 
